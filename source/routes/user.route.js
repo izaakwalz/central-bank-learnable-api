@@ -14,7 +14,8 @@ router
     .get('/transactions', transactionCtrl.getAllTransactions)
     .post('/transactions/deposit', validator.checkDeposit, transactionCtrl.createDepositTransaction)
     .post('/transactions/withdrawal', validator.checkWithdrawal, transactionCtrl.createWithdrawalTransaction)
-    .post('/transactions/transfer', validator.checkWithdrawal, transactionCtrl.createTransferTransaction);
+    .post('/transactions/transfer', validator.checkTransfer, transactionCtrl.createTransferTransaction)
+    .post('/transactions/report', validator.checkcomplain, transactionCtrl.reportTransaction);
 
 // Admin users routes
 router.use('/', auth, protect([ROLES[1]]));

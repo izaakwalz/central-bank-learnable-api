@@ -1,10 +1,9 @@
 const { randomBytes } = require('crypto');
-
+const Complain = require('../models/complain.model');
 const Transaction = require('../models/transaction.model');
 const ErrorResponse = require('../utilities/error-response');
 const { hashToken } = require('../utilities/helper');
 const accountService = require('./account.service');
-const userService = require('./user.service');
 
 class TransactionService {
     async depost(accNo, { pin, amount, description }) {
@@ -204,6 +203,22 @@ class TransactionService {
         account.customer.pin = undefined;
 
         return statement;
+    }
+
+    async reportTransaction(accNo, { message, refrence }) {
+        const transaction = await Transaction.findOne({ session_id: refrence });
+
+        if (!transaction) throw new ErrorResponse('Please enetr a valid account number');
+
+        let complain = await Complain.findOne({ account_no: accNo, refrence: refrence });
+
+        if (complain) throw new ErrorResponse('You alrready reported this transaction, please wait for our feed back');
+
+        complain = new Complain({ message, account_no: accNo, refrence: transaction.session_id });
+
+        await complain.save();
+
+        return complain;
     }
 
     async isValidAccount(acountNumber) {

@@ -59,9 +59,24 @@ const createTransferTransaction = asyncHandler(async (req, res) => {
     res.status(200).send(response(message, transaction));
 });
 
+const reportTransaction = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    const error_msg = errors.array().map((error) => error.msg);
+
+    // converts multiple error msg to a single string
+    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
+
+    const accNo = await req.user.acc_no(); // account number
+
+    const complain = await transactionService.reportTransaction(accNo, req.body);
+
+    res.status(200).send(response('Transaction reported, pending aproval', complain));
+});
+
 module.exports = {
     getAllTransactions,
     createDepositTransaction,
     createWithdrawalTransaction,
     createTransferTransaction,
+    reportTransaction,
 };
