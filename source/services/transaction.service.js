@@ -7,7 +7,7 @@ const accountService = require('./account.service');
 const userService = require('./user.service');
 
 class TransactionService {
-    async depost({ accNo, pin, amount, description }) {
+    async depost(accNo, { pin, amount, description }) {
         let account = await this.isValidAccount(accNo);
 
         if (account.customer.pin === undefined)
@@ -56,7 +56,7 @@ class TransactionService {
         return { message: 'Transaction Successfull', transaction: details };
     }
 
-    async withdrawal({ accNo, pin, amount }) {
+    async withdrawal(accNo, { pin, amount }) {
         let account = await this.isValidAccount(accNo);
 
         // checking if the user has a transaction pin or not
@@ -70,9 +70,6 @@ class TransactionService {
         const parse_balance = parseFloat(account.account_balance).toFixed(2);
 
         if (parse_amount < 200) throw new ErrorResponse('The minimum amount for withdrawl is 200');
-
-        // console.log('amount', parse_amount);
-        // console.log('balance', parse_balance);
 
         // check if withdrawal amount is bigger than the account balance
         if (parseInt(parse_amount) > parseInt(parse_balance))
@@ -116,10 +113,11 @@ class TransactionService {
         return { message: 'Transaction Successfull', transaction: details };
     }
 
-    async transfer({ accNo, creditAccNo, pin, amount, description }) {
+    async transfer(accNo, data) {
+        const { pin, amount, description } = data;
         let depositor = await this.isValidAccount(accNo);
 
-        let beneficiary = await this.isValidAccount(creditAccNo);
+        let beneficiary = await this.isValidAccount(data.beneficiary);
         beneficiary.customer.pin = undefined;
 
         if (!beneficiary) throw new ErrorResponse(`Can not find an account with this number ${creditAccNo}`);
@@ -133,7 +131,13 @@ class TransactionService {
         const depositor_parse_balance = parseFloat(account.account_balance).toFixed(4);
         const beneficiary_parse_balance = parseFloat(beneficiary.account_balance).toFixed(4);
 
-        const data = {
+        if (parse_amount < 100) throw new ErrorResponse('The minimum amount for transfer is 100');
+
+        // check if transfer amount is bigger than the depositor balance
+        if (parseInt(parse_amount) > parseInt(depositor_parse_balance))
+            throw new ErrorResponse('Sorry you do not have enough cash to perform this transaction');
+
+        const transaction_data = {
             amount: parse_amount,
             description: description,
             debit_account: depositor._id,
@@ -142,7 +146,7 @@ class TransactionService {
             session_id: randomBytes(13).toString('hex'),
         };
 
-        const transaction = await new Transaction(data);
+        const transaction = await new Transaction(transaction_data);
 
         if (!transaction) throw new ErrorResponse('Transaction not Successfull, please try again later');
 
