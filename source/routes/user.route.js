@@ -13,7 +13,8 @@ router.use('/transactions', auth, protect(ROLES));
 router
     .get('/transactions', transactionCtrl.getAllTransactions)
     .post('/transactions/deposit', validator.checkDeposit, transactionCtrl.createDepositTransaction)
-    .post('/transactions/withdrawal', validator.checkWithdrawal, transactionCtrl.createWithdrawalTransaction);
+    .post('/transactions/withdrawal', validator.checkWithdrawal, transactionCtrl.createWithdrawalTransaction)
+    .post('/transactions/transfer', validator.checkWithdrawal, transactionCtrl.createTransferTransaction);
 
 // Admin users routes
 router.use('/', auth, protect([ROLES[1]]));

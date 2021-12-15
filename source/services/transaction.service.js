@@ -115,21 +115,23 @@ class TransactionService {
 
     async transfer(accNo, data) {
         const { pin, amount, description } = data;
+
         let depositor = await this.isValidAccount(accNo);
 
         let beneficiary = await this.isValidAccount(data.beneficiary);
         beneficiary.customer.pin = undefined;
 
+        if (data.beneficiary === accNo) throw new ErrorResponse('you cant perform a transfer to your own account');
         if (!beneficiary) throw new ErrorResponse(`Can not find an account with this number ${creditAccNo}`);
 
-        if (account.customer.pin === undefined)
+        if (depositor.customer.pin === undefined)
             throw new ErrorResponse('Transaction pin not found, please add a transaction pin');
         const isValidPin = hashToken(pin); //  check if pin matches hash
-        if (isValidPin !== account.customer.pin) throw new ErrorResponse('Pin not correct, try againg');
+        if (isValidPin !== depositor.customer.pin) throw new ErrorResponse('Pin not correct, try againg');
 
         const parse_amount = parseFloat(amount).toFixed(4);
-        const depositor_parse_balance = parseFloat(account.account_balance).toFixed(4);
-        const beneficiary_parse_balance = parseFloat(beneficiary.account_balance).toFixed(4);
+        const depositor_parse_balance = parseFloat(depositor.account_balance).toFixed(4);
+        const beneficiary_parse_balance = parseFloat(beneficiary.account_balance);
 
         if (parse_amount < 100) throw new ErrorResponse('The minimum amount for transfer is 100');
 
@@ -142,7 +144,7 @@ class TransactionService {
             description: description,
             debit_account: depositor._id,
             credit_account: beneficiary._id,
-            transaction_type: 'trnasfer',
+            transaction_type: 'transfer',
             session_id: randomBytes(13).toString('hex'),
         };
 
@@ -151,21 +153,23 @@ class TransactionService {
         if (!transaction) throw new ErrorResponse('Transaction not Successfull, please try again later');
 
         const depositor_data = {
+            debit: parse_amount,
             session_id: transaction.session_id,
             previous_balance: depositor_parse_balance,
             current_balance: depositor_parse_balance - parse_amount,
         };
 
         const beneficiary_data = {
+            credit: parse_amount,
             session_id: transaction.session_id,
             previous_balance: beneficiary_parse_balance,
-            current_balance: beneficiary_parse_balance - parse_amount,
+            current_balance: parseInt(beneficiary_parse_balance) + parse_amount,
         };
 
         depositor.account_balance = depositor_data.current_balance; // update user account
         beneficiary.account_balance = beneficiary_data.current_balance; // update user account
-        depositor.balance_track.push(depositor_data);
-        beneficiary.balance_track.push(beneficiary_data);
+        depositor.references.push(depositor_data);
+        beneficiary.references.push(beneficiary_data);
         transaction.transaction_status = 'success'; // update transaction status
 
         await transaction.save();
@@ -173,6 +177,10 @@ class TransactionService {
         await beneficiary.save();
 
         depositor.customer.pin = undefined;
+
+        const reference = depositor.references.find((record) => record.session_id === transaction.session_id);
+
+        depositor.references = reference;
 
         const result = {
             transaction,

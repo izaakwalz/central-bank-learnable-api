@@ -53,8 +53,9 @@ const createTransferTransaction = asyncHandler(async (req, res) => {
     // converts multiple error msg to a single string
     if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
 
-    const accNo = await req.user.acc_no();
-    const { message, transaction } = await transactionService.withdrawal(accNo, req.body);
+    const accNo = await req.user.acc_no(); // account number
+
+    const { message, transaction } = await transactionService.transfer(accNo, req.body);
     res.status(200).send(response(message, transaction));
 });
 
