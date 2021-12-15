@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const balanceSchema = new Schema({
+const referenceSchema = new Schema({
+	credit: Number,
+	debit: Number,
 	session_id: {
 		type: String,
 		required: [true, 'Session id is required'],
@@ -14,7 +16,7 @@ const balanceSchema = new Schema({
 		type: Number,
 		required: [true, 'Current balance amount is required'],
 	},
-	created_at: { type: Date, default: Date.now() },
+	created_at: { type: Date, requried: true },
 });
 
 const accountSchema = new Schema(
@@ -33,7 +35,7 @@ const accountSchema = new Schema(
 			ref: 'users',
 			required: [true, 'Customer Id is requried'],
 		},
-		balance_track: [balanceSchema],
+		references: [referenceSchema],
 	},
 	{ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
