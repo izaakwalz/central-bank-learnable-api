@@ -183,12 +183,26 @@ class TransactionService {
         return { message: 'Transaction Successfull', transaction: result };
     }
 
+    async transactionList(accNo, type) {
+        let account = await this.isValidAccount(accNo);
+
+        const reference = account.references.map((record) => record.session_id);
+        const statement = await Transaction.find({ transaction_type: type ? type : 'deposit' })
+            .where('session_id')
+            .in(reference)
+            .populate('debit_account')
+            .populate('credit_account');
+
+        account.customer.pin = undefined;
+
+        return statement;
+    }
+
     async isValidAccount(acountNumber) {
         let account = await accountService.findOne(
             { account_number: acountNumber },
             '-__v +pin -isActive -pin_reset -password_reset'
-        ); // TODO: change this to auth user account number deprecating the use of account number in the req.body
-
+        );
         return account;
     }
 }

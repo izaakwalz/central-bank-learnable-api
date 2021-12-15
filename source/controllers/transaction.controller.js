@@ -4,6 +4,17 @@ const transactionService = require('../services/transaction.service');
 const userService = require('../services/user.service');
 const response = require('../utilities/response');
 
+/** Get user transactions */
+
+const getAllTransactions = asyncHandler(async (req, res) => {
+    const accNo = await req.user.acc_no();
+    const transtionlist = await transactionService.transactionList(accNo, req.query.type);
+    const message = req.query.type
+        ? `Transaction staement for ${req.query.type} success`
+        : 'Tansaction staement success';
+    res.status(200).send(response(message, transtionlist));
+});
+
 /**
  * @ {desc} Deposit transaction
  */
@@ -12,8 +23,8 @@ const createDepositTransaction = asyncHandler(async (req, res) => {
     const error_msg = errors.array().map((error) => error.msg);
     // converts multiple error msg to a single string
     if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
+    const accNo = await req.user.acc_no();
 
-    const accNo = await user.acc_no(); // get user account number
     const { message, transaction } = await transactionService.depost(accNo, req.body);
     res.status(200).send(response(message, transaction));
 });
@@ -47,4 +58,9 @@ const createTransferTransaction = asyncHandler(async (req, res) => {
     res.status(200).send(response(message, transaction));
 });
 
-module.exports = { createDepositTransaction, createWithdrawalTransaction, createTransferTransaction };
+module.exports = {
+    getAllTransactions,
+    createDepositTransaction,
+    createWithdrawalTransaction,
+    createTransferTransaction,
+};

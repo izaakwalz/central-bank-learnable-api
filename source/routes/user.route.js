@@ -11,6 +11,7 @@ router.post('/update/pin', userCtrl.createPin);
 // Transactions routers
 router.use('/transactions', auth, protect(ROLES));
 router
+    .get('/transactions', transactionCtrl.getAllTransactions)
     .post('/transactions/deposit', validator.checkDeposit, transactionCtrl.createDepositTransaction)
     .post('/transactions/withdrawal', validator.checkWithdrawal, transactionCtrl.createWithdrawalTransaction);
 

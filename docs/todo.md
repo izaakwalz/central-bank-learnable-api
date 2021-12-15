@@ -13,7 +13,8 @@
 -   [x] Deposit money - POST /users/transactions/deposit
 -   [x] Withdraw money - POST /users/transactions/withdrawal
 -   [x] Transfer funds - POST /users/transactions/transfer
--   [ ] View list of Transactions - GET /users/transactions
+-   [x] View list of Transactions - GET /users/transactions
+-   [x] View a type of Transactions - GET /users/transactions?type= `deposit, withdrawl, transfer`
 
 ## Admin's Endpoint:
 

@@ -63,6 +63,13 @@ transactionSchema.pre('save', function (next) {
     next();
 });
 
+transactionSchema.pre('find', function (next) {
+    this.populate('credit_account', '-__v -account_balance -references -updated_at -created_at');
+    this.populate('debit_account', '-__v -account_balance -references -updated_at -created_at');
+
+    next();
+});
+
 const Transaction = mongoose.model('transactions', transactionSchema);
 
 module.exports = Transaction;
