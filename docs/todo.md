@@ -2,6 +2,8 @@
 
 ## User's Endpoint:
 
+-   [x] Create Pin - POST /users/update/pin
+
 #### Authentication
 
 -   [x] Login - POST /auth/login
