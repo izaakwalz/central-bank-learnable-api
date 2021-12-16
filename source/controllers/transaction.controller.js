@@ -22,7 +22,7 @@ const createDepositTransaction = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     const error_msg = errors.array().map((error) => error.msg);
     // converts multiple error msg to a single string
-    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
+    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', '), null, false));
     const accNo = await req.user.acc_no();
 
     const { message, transaction } = await transactionService.depost(accNo, req.body);
@@ -34,9 +34,8 @@ const createDepositTransaction = asyncHandler(async (req, res) => {
 const createWithdrawalTransaction = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     const error_msg = errors.array().map((error) => error.msg);
-
     // converts multiple error msg to a single string
-    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
+    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', '), null, false));
 
     const accNo = await req.user.acc_no();
     const { message, transaction } = await transactionService.withdrawal(accNo, req.body);
@@ -49,9 +48,8 @@ const createWithdrawalTransaction = asyncHandler(async (req, res) => {
 const createTransferTransaction = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     const error_msg = errors.array().map((error) => error.msg);
-
     // converts multiple error msg to a single string
-    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
+    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', '), null, false));
 
     const accNo = await req.user.acc_no(); // account number
 
@@ -62,9 +60,8 @@ const createTransferTransaction = asyncHandler(async (req, res) => {
 const reportTransaction = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     const error_msg = errors.array().map((error) => error.msg);
-
     // converts multiple error msg to a single string
-    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', ')));
+    if (!errors.isEmpty()) return res.status(400).send(response(error_msg.join(', '), null, false));
 
     const accNo = await req.user.acc_no(); // account number
 

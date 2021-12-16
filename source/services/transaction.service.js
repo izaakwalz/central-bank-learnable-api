@@ -121,7 +121,7 @@ class TransactionService {
 
         let depositor = await this.isValidAccount({ account_number: accNo });
 
-        let beneficiary = await this.isValidAccount(data.beneficiary);
+        let beneficiary = await this.isValidAccount({ account_number: data.beneficiary });
         beneficiary.customer.pin = undefined;
 
         if (data.beneficiary === accNo) throw new ErrorResponse('you cant perform a transfer to your own account');
@@ -199,7 +199,7 @@ class TransactionService {
     }
 
     async transactionList(accNo, type) {
-        let account = await this.isValidAccount(accNo);
+        let account = await this.isValidAccount({ account_number: accNo });
 
         const reference = account.references.map((record) => record.session_id);
         const statement = await Transaction.find({ transaction_type: type ? type : 'deposit' })
