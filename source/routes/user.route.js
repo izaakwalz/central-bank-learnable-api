@@ -17,6 +17,8 @@ router
     .post('/transactions/transfer', validator.checkTransfer, transactionCtrl.createTransferTransaction)
     .post('/transactions/report', validator.checkcomplain, transactionCtrl.reportTransaction);
 
+router.route('/reverse-transaction/:id').patch(auth, protect([ROLES[1]]), transactionCtrl.reverseTransaction);
+
 // Admin users routes
 router.use('/', auth, protect([ROLES[1]]));
 router.route('/').post(userCtrl.CreateUser);

@@ -7,7 +7,7 @@ const accountService = require('./account.service');
 
 class TransactionService {
     async depost(accNo, { pin, amount, description }) {
-        let account = await this.isValidAccount(accNo);
+        let account = await this.isValidAccount({ account_number: accNo });
 
         if (account.customer.pin === undefined)
             throw new ErrorResponse('Transaction pin not found, please add a transaction pin');
@@ -56,7 +56,7 @@ class TransactionService {
     }
 
     async withdrawal(accNo, { pin, amount }) {
-        let account = await this.isValidAccount(accNo);
+        let account = await this.isValidAccount({ account_number: accNo });
 
         // checking if the user has a transaction pin or not
         if (account.customer.pin === undefined)
@@ -102,6 +102,10 @@ class TransactionService {
         await account.save();
 
         account.customer.pin = undefined;
+        transaction.created_at = undefined;
+        transaction.updated_at = undefined;
+        account.customer.created_at = undefined;
+        account.customer.updated_at = undefined;
 
         const reference = account.references.find((record) => record.session_id === transaction.session_id);
 
@@ -115,7 +119,7 @@ class TransactionService {
     async transfer(accNo, data) {
         const { pin, amount, description } = data;
 
-        let depositor = await this.isValidAccount(accNo);
+        let depositor = await this.isValidAccount({ account_number: accNo });
 
         let beneficiary = await this.isValidAccount(data.beneficiary);
         beneficiary.customer.pin = undefined;
@@ -176,6 +180,10 @@ class TransactionService {
         await beneficiary.save();
 
         depositor.customer.pin = undefined;
+        transaction.created_at = undefined;
+        transaction.updated_at = undefined;
+        depositor.customer.created_at = undefined;
+        depositor.customer.updated_at = undefined;
 
         const reference = depositor.references.find((record) => record.session_id === transaction.session_id);
 
@@ -214,17 +222,85 @@ class TransactionService {
 
         if (complain) throw new ErrorResponse('You alrready reported this transaction, please wait for our feed back');
 
-        complain = new Complain({ message, account_no: accNo, refrence: transaction.session_id });
+        complain = new Complain({
+            message,
+            account_no: accNo,
+            refrence: transaction.session_id,
+            transId: transaction._id,
+        });
 
         await complain.save();
 
         return complain;
     }
 
-    async isValidAccount(acountNumber) {
+    async reverseTransaction(id, { status }) {
+        if (!status) throw new ErrorResponse('Report staus is required');
+
+        const report = await Complain.findById(id);
+        if (!report) throw new ErrorResponse('Invalid report ID', 404);
+
+        if (report.status === 'approved') throw new ErrorResponse('This transaction has been approved');
+
+        let transaction = await Transaction.findOne({ _id: report.transId });
+
+        if (transaction.reversed === true || transaction.status === 'failed')
+            throw new ErrorResponse('This transaction has been reversed');
+        await Complain.updateOne({ _id: id }, { $set: { status: status } });
+
+        if (report.status === 'declined') return;
+
+        let depositor = await this.isValidAccount({ _id: transaction.debit_account });
+        let creditor = await this.isValidAccount({ _id: transaction.credit_account });
+
+        let data;
+        if (transaction.transaction_type === 'deposit') {
+            creditor.account_balance = parseInt(creditor.account_balance) - transaction.amount;
+            await creditor.save();
+            creditor.customer = undefined;
+            creditor.references = undefined;
+            data = creditor;
+        } else if (transaction.transaction_type === 'withdrawal') {
+            depositor.account_balance = depositor.account_balance + transaction.amount;
+            await depositor.save();
+            depositor.customer = undefined;
+            depositor.references = undefined;
+            data = depositor;
+        } else {
+            if (!depositor || !creditor)
+                throw new ErrorResponse('Transaction record for either depositor or beneficiary not found', 404);
+
+            creditor.account_balance = parseInt(creditor.account_balance) - transaction.amount;
+            depositor.account_balance = depositor.account_balance + transaction.amount;
+
+            await depositor.save();
+            await creditor.save();
+            creditor.customer = undefined;
+            depositor.customer = undefined;
+            creditor.references = undefined;
+            depositor.references = undefined;
+            data = { depositor, creditor };
+        }
+
+        transaction.reversed = true;
+        transaction.transaction_status = 'failed';
+
+        await transaction.save();
+
+        const result = { report, transaction, data };
+
+        return result;
+    }
+
+    /**
+     * Get user account
+     * @param {object} options
+     * @returns
+     */
+    async isValidAccount(options) {
         let account = await accountService.findOne(
-            { account_number: acountNumber },
-            '-__v +pin -isActive -pin_reset -password_reset'
+            options,
+            '-__v -email -phone +pin -isActive -pin_reset -password_reset'
         );
         return account;
     }

@@ -21,4 +21,4 @@
 -   [x] Create User - POST /users
 -   [x] Diable User - PATCH /users/:userId
 -   [x] Delete User - DELETE /users/:userId
--   [ ] Reverse transactions(transfer) - POST /users/transactions
+-   [x] Reverse transactions(transfer) - POST /users/reverse-transaction/:complainID

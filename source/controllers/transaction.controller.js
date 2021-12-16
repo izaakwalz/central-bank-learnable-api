@@ -73,10 +73,17 @@ const reportTransaction = asyncHandler(async (req, res) => {
     res.status(200).send(response('Transaction reported, pending aproval', complain));
 });
 
+const reverseTransaction = asyncHandler(async (req, res) => {
+    const data = await transactionService.reverseTransaction(req.params.id, req.body);
+
+    res.status(200).send(response('Transaction approved and revresed', data));
+});
+
 module.exports = {
     getAllTransactions,
     createDepositTransaction,
     createWithdrawalTransaction,
     createTransferTransaction,
     reportTransaction,
+    reverseTransaction,
 };

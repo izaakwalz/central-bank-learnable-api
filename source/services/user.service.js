@@ -1,3 +1,4 @@
+const Account = require('../models/account.model');
 const User = require('../models/user.model');
 const ErrorResponse = require('../utilities/error-response');
 const { hashToken } = require('../utilities/helper');
@@ -87,9 +88,10 @@ class UserService {
         let user = await this.findOne({ _id: userId });
 
         if (!user) throw new ErrorResponse(`There is no user with this ID - ${userId}`, 404);
-
+        const account = Account.findOne({ customer: user._id });
+        if (!account) throw new ErrorResponse(`There is no user account with this ID`, 404);
         await User.deleteOne({ _id: user._id });
-
+        await Account.deleteOne({ _id: account._id });
         return;
     }
 

@@ -1,5 +1,5 @@
-const mongoode = require('mongoose');
-const Schema = mongoode.Schema;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
 const complainSchema = new Schema({
     message: String,
@@ -9,9 +9,19 @@ const complainSchema = new Schema({
         type: String,
         enum: ['pending', 'approved', 'declined'],
         default: 'pending',
+        required: [true, 'Complain staus is requried'],
+    },
+    transId: {
+        type: mongoose.Types.ObjectId,
+        ref: 'transactions',
     },
 });
 
-const Complain = mongoode.model('complains', complainSchema);
+complainSchema.pre('find', function (next) {
+    this.populate('transId', '-__v -created_at -updated_at');
+    next();
+});
+
+const Complain = mongoose.model('complains', complainSchema);
 
 module.exports = Complain;
