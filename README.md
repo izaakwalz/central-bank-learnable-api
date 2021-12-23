@@ -33,4 +33,37 @@ with the following features:
 -   Reverse transactions(transfer)
 -   Disable a user’s account
 
-<!-- # Central Bank of Learnable is Learnable 21:Backend standarddization Test Exercise  -->
+## Usage
+
+### Env Variables
+
+Create a .env file in then root and add the following
+
+-   `PORT = 5000`
+-   `NODE_ENV = development`
+
+### Install Dependencies
+
+-   ` npm install`
+
+### Populate Database (users & accounts)
+
+use the following commands to populate the database with some sample users and accounts as well as destroy all data
+
+-   `npm run import-users` Import users to database to create an admin
+
+### Sample User Logins
+
+---
+
+-   email: `demo@example.com` (admin)
+-   email: `jon@example.com` (customer)
+-   email: `tom@example.com` (customer)
+
+---
+
+### Run
+
+-   `npm run dev`
+
+👾👾👾👾👾👾👾****\_\_\_****👾👾👾👾👾👾👾

@@ -1,0 +1,23 @@
+[
+    {
+        "name": "Jason Alexander",
+        "email": "demo@example.com",
+        "phone": "+2349080778877",
+        "isActive": true,
+        "role": "admin"
+    },
+    {
+        "name": "Jon Doe",
+        "email": "jon@example.com",
+        "phone": "+2349080778870",
+        "isActive": true,
+        "role": "customer"
+    },
+    {
+        "name": "Tom Holland",
+        "email": "tom@example.com",
+        "phone": "+2349080778878",
+        "isActive": true,
+        "role": "customer"
+    }
+]
